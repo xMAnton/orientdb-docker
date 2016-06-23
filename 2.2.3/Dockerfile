@@ -28,12 +28,11 @@ RUN mkdir /orientdb && \
   && rm orientdb-community-$ORIENTDB_VERSION.tar.gz \
   && rm -rf /orientdb/databases/*
 
+COPY config /orientdb/config/
 
 ENV PATH /orientdb/bin:$PATH
 
 VOLUME ["/orientdb/backup", "/orientdb/databases", "/orientdb/config"]
-
-COPY config /orientdb/config/
 
 WORKDIR /orientdb
 
