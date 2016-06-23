@@ -33,7 +33,7 @@ ENV PATH /orientdb/bin:$PATH
 
 VOLUME ["/orientdb/backup", "/orientdb/databases", "/orientdb/config"]
 
-COPY config /orientdb/
+COPY config /orientdb/config/
 
 WORKDIR /orientdb
 
