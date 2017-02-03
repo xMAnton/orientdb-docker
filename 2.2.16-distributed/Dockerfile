@@ -26,9 +26,11 @@ RUN mkdir /orientdb && \
   && echo "$ORIENTDB_DOWNLOAD_SHA1 *orientdb-community-$ORIENTDB_VERSION.tar.gz" | sha1sum -c - \
   && tar -xvzf orientdb-community-$ORIENTDB_VERSION.tar.gz -C /orientdb --strip-components=1 \
   && rm orientdb-community-$ORIENTDB_VERSION.tar.gz \
-  && rm -rf /orientdb/databases/* \
-  && sed -i -e 's/<multicast enabled="true">/<multicast enabled="false">/' /orientdb/config/hazelcast.xml \
-  && sed -i "/<\/multicast>/a\ \t\t\t<tcp-ip enabled=\"true\">\n\t\t\t\t<members>192.168.100.2-6<\/members>\n\t\t\t</tcp-ip>" /orientdb/config/hazelcast.xml
+  && rm -rf /orientdb/databases/* 
+
+RUN sed -i -e 's/<multicast enabled="true">/<multicast enabled="false">/' /orientdb/config/hazelcast.xml 
+
+RUN sed -i "/<\/multicast>/a\ \t\t\t<tcp-ip enabled=\"true\">\n\t\t\t\t<members>192.168.100.2-6<\/members>\n\t\t\t</tcp-ip>" /orientdb/config/hazelcast.xml
 
 ENV PATH /orientdb/bin:$PATH
 
@@ -41,6 +43,7 @@ EXPOSE 2424
 
 #OrientDb http
 EXPOSE 2480
+
 
 # Default command start the server
 CMD ["server.sh -Ddistributed=true"]
