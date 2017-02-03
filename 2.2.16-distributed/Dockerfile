@@ -1,0 +1,46 @@
+############################################################
+# Dockerfile to run an OrientDB (Graph) Container
+############################################################
+
+FROM java:openjdk-8-jdk-alpine
+
+MAINTAINER Antonio Messina @xMAnton (antonio.messina@cnr.it)
+
+# Override the orientdb download location with e.g.:
+#   docker build -t mine --build-arg ORIENTDB_DOWNLOAD_SERVER=http://repo1.maven.org/maven2/com/orientechnologies/ .
+ARG ORIENTDB_DOWNLOAD_SERVER
+
+ENV ORIENTDB_VERSION 2.2.16
+ENV ORIENTDB_DOWNLOAD_MD5 dbfda032e428ff074a9ed0b40db06e74
+ENV ORIENTDB_DOWNLOAD_SHA1 0e0e0fea7060bfd3c36db194d7d5cab5b10cb949
+
+ENV ORIENTDB_DOWNLOAD_URL ${ORIENTDB_DOWNLOAD_SERVER:-http://central.maven.org/maven2/com/orientechnologies}/orientdb-community/$ORIENTDB_VERSION/orientdb-community-$ORIENTDB_VERSION.tar.gz
+
+RUN apk add --update tar \
+    && rm -rf /var/cache/apk/*
+
+#download distribution tar, untar and delete databases
+RUN mkdir /orientdb && \
+  wget  $ORIENTDB_DOWNLOAD_URL \
+  && echo "$ORIENTDB_DOWNLOAD_MD5 *orientdb-community-$ORIENTDB_VERSION.tar.gz" | md5sum -c - \
+  && echo "$ORIENTDB_DOWNLOAD_SHA1 *orientdb-community-$ORIENTDB_VERSION.tar.gz" | sha1sum -c - \
+  && tar -xvzf orientdb-community-$ORIENTDB_VERSION.tar.gz -C /orientdb --strip-components=1 \
+  && rm orientdb-community-$ORIENTDB_VERSION.tar.gz \
+  && rm -rf /orientdb/databases/* \
+  && sed -i -e 's/<multicast enabled="true">/<multicast enabled="false">/' /orientdb/config/hazelcast.xml
+  && sed -i "/<\/multicast>/a\ \t\t\t<tcp-ip enabled=\"true\">\n\t\t\t\t<members>192.168.100.2-6<\/members>\n\t\t\t</tcp-ip>" /orientdb/config/hazelcast.xml
+
+ENV PATH /orientdb/bin:$PATH
+
+#VOLUME ["/orientdb/backup", "/orientdb/databases", "/orientdb/config"]
+
+WORKDIR /orientdb
+
+#OrientDb binary
+EXPOSE 2424
+
+#OrientDb http
+EXPOSE 2480
+
+# Default command start the server
+CMD ["server.sh -Ddistributed=true"]
